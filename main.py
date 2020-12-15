@@ -28,7 +28,7 @@ def show_image():
 def dataX(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\*'):
+    for filepath in glob.iglob(r'dataset2\train\[0..1]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -37,15 +37,15 @@ def dataX(features):
             data = list(img.getdata())
             x = np.array(data)
             data_x = np.append(data_x, x)
-            print("x: ", x)
-    print("count", count)
+            #print("x: ", x)
+    #print("count", count)
     data_x = data_x.reshape(count, features)
-    print("data_x: ", data_x)
+    #print("data_x: ", data_x)
     return data_x
 def dataY(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\*'):
+    for filepath in glob.iglob(r'dataset2\train\[0..1]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -56,24 +56,56 @@ def dataY(categories):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
-            print("y: ", y)
             data_y = np.append(data_y, y)
-            print("data_y1: ", data_y)
     data_y = data_y.reshape(count, categories)
-    print("data_y: ", data_y)
+    #print("data_y: ", data_y)
     return data_y
 
-
+def dataXTest(features):
+    data_x = np.array([])
+    count = 0
+    for filepath in glob.iglob(r'dataset2\test\[0..1]'):
+        path = filepath.split("\\")
+        globpath = filepath + '\*.jpg'
+        for filepath in glob.iglob(r'' + globpath):
+            count = count + 1
+            img = Image.open(filepath).convert('L')  # convert image to 8-bit grayscale
+            data = list(img.getdata())
+            x = np.array(data)
+            data_x = np.append(data_x, x)
+            #print("x: ", x)
+    #print("count", count)
+    data_x = data_x.reshape(count, features)
+    #print("data_x: ", data_x)
+    return data_x
+def dataYTest(categories):
+    data_y = np.array([])
+    count = 0
+    for filepath in glob.iglob(r'dataset2\test\[0..1]'):
+        path = filepath.split("\\")
+        globpath = filepath + '\*.jpg'
+        for filepath in glob.iglob(r'' + globpath):
+            count = count + 1
+            y = np.array([])
+            for i in range(categories):
+                if i != int(path[2]):
+                    y = np.append(y, [0])
+                else:
+                    y = np.append(y, [1])
+            data_y = np.append(data_y, y)
+    data_y = data_y.reshape(count, categories)
+    #print("data_y: ", data_y)
+    return data_y
 
 
 def model():
     #image = Image.open(path)
-    print(' module')
+    print(' model')
     #pixels = asarray(image)
 
 
     features = 32 * 32
-    categories = 43
+    categories = 2
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     W = tf.Variable(tf.zeros([features, categories]))
@@ -89,6 +121,14 @@ def model():
     print("datax: ", data_x)
     data_y =  dataY(categories)
     print("datay: ", data_y)
+    data_x_test = dataXTest(features)
+    data_y_test = dataYTest(categories)
+    sess = tf.Session()
+    sess.run(tf.global_variables_initializer())
+    for i in range(0, 1000):
+        sess.run(update, feed_dict={x: data_x, y_: data_y})
+    for i in range(len(data_x_test)):
+        print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
 
     #basewidth = 10
     #wpercent = (basewidth / float(img.size[0]))
