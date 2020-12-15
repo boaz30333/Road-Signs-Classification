@@ -66,7 +66,7 @@ def dataY(categories):
 
 
 
-def module():
+def model():
     #image = Image.open(path)
     print(' module')
     #pixels = asarray(image)
@@ -302,7 +302,7 @@ def Local_Standardization():
 
 
 if __name__ == '__main__':
-    module()
+    model()
     #show_image()
     #Normalize_Pixel_Values()
     #Global_Centering()
