@@ -28,7 +28,7 @@ def show_image():
 def dataX(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0..1]'):
+    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -38,14 +38,14 @@ def dataX(features):
             x = np.array(data)
             data_x = np.append(data_x, x)
             #print("x: ", x)
-    #print("count", count)
+    print("count", count)
     data_x = data_x.reshape(count, features)
     #print("data_x: ", data_x)
-    return data_x
+    return data_x.astype(int)
 def dataY(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0..1]'):
+    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -59,12 +59,12 @@ def dataY(categories):
             data_y = np.append(data_y, y)
     data_y = data_y.reshape(count, categories)
     #print("data_y: ", data_y)
-    return data_y
+    return data_y.astype(int)
 
 def dataXTest(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\test\[0..1]'):
+    for filepath in glob.iglob(r'dataset2\test\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -77,11 +77,11 @@ def dataXTest(features):
     #print("count", count)
     data_x = data_x.reshape(count, features)
     #print("data_x: ", data_x)
-    return data_x
+    return data_x.astype(int)
 def dataYTest(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\test\[0..1]'):
+    for filepath in glob.iglob(r'dataset2\test\[0..2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -105,16 +105,17 @@ def model():
 
 
     features = 32 * 32
-    categories = 2
+    categories = 3
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     W = tf.Variable(tf.zeros([features, categories]))
     b = tf.Variable(tf.zeros([categories]))
     z = tf.matmul(x, W) + b
-    y = tf.nn.softmax(z)
+    #y = tf.nn.softmax(z)
+    #loss = -tf.reduce_mean(y_ * tf.log(y))
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
 
-    update = tf.train.GradientDescentOptimizer(0.001).minimize(loss)
+    update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
     data_x = np.array([])
     data_y = np.array([])
     data_x =  dataX(features)
@@ -127,8 +128,10 @@ def model():
     sess.run(tf.global_variables_initializer())
     for i in range(0, 1000):
         sess.run(update, feed_dict={x: data_x, y_: data_y})
-    for i in range(len(data_x_test)):
-        print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
+        if i % 10 == 0:
+            print("Loss: ", loss)
+    #for i in range(len(data_x_test)):
+     #   print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
 
     #basewidth = 10
     #wpercent = (basewidth / float(img.size[0]))
