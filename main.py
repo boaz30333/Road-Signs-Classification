@@ -25,25 +25,50 @@ def show_image():
     # show the image
     # image.show()
 
-def data_x_and_y():
-    data_x = np.array()
-    data_y = np.array()
-    for filepath in glob.iglob(r'road signs\dataset2\train\*'):
-        x = filepath.split("\\")
+def dataX(features):
+    data_x = np.array([])
+    count = 0
+    for filepath in glob.iglob(r'dataset2\train\*'):
+        path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
+            count = count + 1
             img = Image.open(filepath).convert('L')  # convert image to 8-bit grayscale
-            WIDTH, HEIGHT = img.size
             data = list(img.getdata())
-            data = [data[offset:offset + WIDTH] for offset in range(0, WIDTH * HEIGHT, WIDTH)]
             x = np.array(data)
-            y = np.array
             data_x = np.append(data_x, x)
-            data_y = np.append(data_y, y )
+            print("x: ", x)
+    print("count", count)
+    data_x = data_x.reshape(count, features)
+    print("data_x: ", data_x)
+    return data_x
+def dataY(categories):
+    data_y = np.array([])
+    count = 0
+    for filepath in glob.iglob(r'dataset2\train\*'):
+        path = filepath.split("\\")
+        globpath = filepath + '\*.jpg'
+        for filepath in glob.iglob(r'' + globpath):
+            count = count + 1
+            y = np.array([])
+            for i in range(categories):
+                if i != int(path[2]):
+                    y = np.append(y, [0])
+                else:
+                    y = np.append(y, [1])
+            print("y: ", y)
+            data_y = np.append(data_y, y)
+            print("data_y1: ", data_y)
+    data_y = data_y.reshape(count, categories)
+    print("data_y: ", data_y)
+    return data_y
 
-def from_png_to_npy(path, file_name, x):
+
+
+
+def module():
     #image = Image.open(path)
-    print(' from_png_to_npy()')
+    print(' module')
     #pixels = asarray(image)
 
 
@@ -58,8 +83,12 @@ def from_png_to_npy(path, file_name, x):
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
 
     update = tf.train.GradientDescentOptimizer(0.001).minimize(loss)
-    #data_x = np.array([convert2vec(data[i]) for i in range(len(data))])
-    data_y = np.array([[1, 0, 0], [1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1], [0, 0, 1]])
+    data_x = np.array([])
+    data_y = np.array([])
+    data_x =  dataX(features)
+    print("datax: ", data_x)
+    data_y =  dataY(categories)
+    print("datay: ", data_y)
 
     #basewidth = 10
     #wpercent = (basewidth / float(img.size[0]))
@@ -80,7 +109,7 @@ def from_png_to_npy(path, file_name, x):
         #print(' '.join('{:3}'.format(value) for value in row))
     #img.show()
     #np.save(file_name, a)
-    np.savetxt(x+"/"+file_name+".csv", a, delimiter=',', fmt='%d')
+    #np.savetxt(x+"/"+file_name+".csv", a, delimiter=',', fmt='%d')
 
 
 def pick_random_20_precent(path, lib_name):
@@ -273,6 +302,7 @@ def Local_Standardization():
 
 
 if __name__ == '__main__':
+    module()
     #show_image()
     #Normalize_Pixel_Values()
     #Global_Centering()
@@ -281,16 +311,16 @@ if __name__ == '__main__':
     #Positive_Global_Standardization()
     #Local_Standardization()
     #load_npz()
-    for filepath in glob.iglob(r'road signs\dataset2\train\*'):
-        x = filepath.split("\\")
+    #for filepath in glob.iglob(r'road signs\dataset2\train\*'):
+       # x = filepath.split("\\")
         #if x[3]=='I-1' or x[3]=='I-2' or x[3]=='I-3':
-        if x[3] != '1':
+        #if x[3] != '1':
         #parent_dir = 'road signs/dataset2/validation/'
         #path = os.path.join(parent_dir, x[3])
-            pick_random_20_precent(filepath, x[3])
+         #   pick_random_20_precent(filepath, x[3])
         #os.mkdir(path)
             #continue
-        print(x[3])
+        #print(x[3])
         #os.mkdir(x[3])
         #pick_random_20_precent(filepath,x[3])
         #pick_random_20_precent('road signs\dataset\\train\I-3', 'I-3')
