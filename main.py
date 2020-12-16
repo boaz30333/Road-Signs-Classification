@@ -3,7 +3,7 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 from numpy import asarray
 from PIL import Image
@@ -12,6 +12,8 @@ import glob
 import random as rn
 import os
 import shutil
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 def show_image():
@@ -25,65 +27,72 @@ def show_image():
     # show the image
     # image.show()
 
+
 def dataX(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
-        path = filepath.split("\\")
-        globpath = filepath + '\*.jpg'
+    for filepath in glob.iglob(r'Road-Signs-Project\Road-Signs-Project\dataset2\train\[0-2]'):
+        path = filepath.split("//")
+        globpath = filepath + '/*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
-            img = Image.open(filepath).convert('L')  # convert image to 8-bit grayscale
+            img = Image.open(filepath).convert('L')
+             #  convert image to 8-bit grayscale
             data = list(img.getdata())
             x = np.array(data)
             data_x = np.append(data_x, x)
-            #print("x: ", x)
+            # print("x: ", x)
     print("count", count)
     data_x = data_x.reshape(count, features)
-    #print("data_x: ", data_x)
+    # print("data_x: ", data_x)
     return data_x.astype(int)
+
+
 def dataY(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
+    for filepath in glob.iglob(r'Road-Signs-Project\Road-Signs-Project\dataset2\train\[0-2]'):
         path = filepath.split("\\")
-        globpath = filepath + '\*.jpg'
+        globpath = filepath + r'\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[2]):
+                if i != int(path[4]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
             data_y = np.append(data_y, y)
     data_y = data_y.reshape(count, categories)
-    #print("data_y: ", data_y)
+    # print("data_y: ", data_y)
     return data_y.astype(int)
+
 
 def dataXTest(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\test\[0-2]'):
+    for filepath in glob.iglob(r'Road-Signs-Project\Road-Signs-Project\dataset2\test\[0-2]'):
         path = filepath.split("\\")
-        globpath = filepath + '\*.jpg'
+        globpath = filepath + r'\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             img = Image.open(filepath).convert('L')  # convert image to 8-bit grayscale
             data = list(img.getdata())
             x = np.array(data)
             data_x = np.append(data_x, x)
-            #print("x: ", x)
-    #print("count", count)
+            # print("x: ", x)
+    # print("count", count)
     data_x = data_x.reshape(count, features)
-    #print("data_x: ", data_x)
+    # print("data_x: ", data_x)
     return data_x.astype(int)
+
+
 def dataYTest(categories):
     data_y = np.array([])
     count = 0
     for filepath in glob.iglob(r'dataset2\test\[0..2]'):
         path = filepath.split("\\")
-        globpath = filepath + '\*.jpg'
+        globpath = filepath + r'\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
@@ -94,15 +103,14 @@ def dataYTest(categories):
                     y = np.append(y, [1])
             data_y = np.append(data_y, y)
     data_y = data_y.reshape(count, categories)
-    #print("data_y: ", data_y)
+    # print("data_y: ", data_y)
     return data_y
 
 
 def model():
-    #image = Image.open(path)
+    # image = Image.open(path)
     print(' model')
-    #pixels = asarray(image)
-
+    # pixels = asarray(image)
 
     features = 32 * 32
     categories = 3
@@ -111,14 +119,14 @@ def model():
     W = tf.Variable(tf.zeros([features, categories]))
     b = tf.Variable(tf.zeros([categories]))
     z = tf.matmul(x, W) + b
-    #y = tf.nn.softmax(z)
-    #loss = -tf.reduce_mean(y_ * tf.log(y))
+    # y = tf.nn.softmax(z)
+    # loss = -tf.reduce_mean(y_ * tf.log(y))
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
 
     update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
     data_x = np.array([])
     data_y = np.array([])
-    data_x =  dataX(features)
+    data_x = dataX(features)
     print("datax: ", data_x)
     data_y =  dataY(categories)
     print("datay: ", data_y)
