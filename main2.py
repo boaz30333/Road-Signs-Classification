@@ -25,6 +25,18 @@ def show_image():
     # show the image
     # image.show()
 
+def next_batch(num, data, labels):
+    '''
+    Return a total of `num` random samples and labels.
+    '''
+    idx = np.arange(0 , len(data))
+    np.random.shuffle(idx)
+    idx = idx[:num]
+    data_shuffle = [data[ i] for i in idx]
+    labels_shuffle = [labels[ i] for i in idx]
+
+    return np.asarray(data_shuffle), np.asarray(labels_shuffle)
+
 def dataX(features):
     data_x = np.array([])
     count = 0
@@ -42,6 +54,7 @@ def dataX(features):
     data_x = data_x.reshape(count, features)
     #print("data_x: ", data_x)
     return data_x.astype(int)
+    #return data_x
 def dataY(categories):
     data_y = np.array([])
     count = 0
@@ -60,6 +73,7 @@ def dataY(categories):
     data_y = data_y.reshape(count, categories)
     #print("data_y: ", data_y)
     return data_y.astype(int)
+    #return data_y
 
 def dataXTest(features):
     data_x = np.array([])
@@ -81,7 +95,7 @@ def dataXTest(features):
 def dataYTest(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\test\[0..2]'):
+    for filepath in glob.iglob(r'dataset2\test\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -95,7 +109,7 @@ def dataYTest(categories):
             data_y = np.append(data_y, y)
     data_y = data_y.reshape(count, categories)
     #print("data_y: ", data_y)
-    return data_y
+    return data_y.astype(int)
 
 
 def model():
@@ -103,33 +117,86 @@ def model():
     print(' model')
     #pixels = asarray(image)
 
-
+    learning_rate = 0.01
+    training_epochs = 25
+    batch_size = 100
+    display_step = 1
     features = 32 * 32
     categories = 3
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
+    W = tf.Variable(tf.random_normal([features, categories]))
     W = tf.Variable(tf.zeros([features, categories]))
-    b = tf.Variable(tf.zeros([categories]))
+    b = tf.Variable(tf.random_normal([categories]))
+    y = tf.nn.softmax(tf.matmul(x, W) + b)
     z = tf.matmul(x, W) + b
-    #y = tf.nn.softmax(z)
-    #loss = -tf.reduce_mean(y_ * tf.log(y))
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
-
-    update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
-    data_x = np.array([])
-    data_y = np.array([])
-    data_x =  dataX(features)
+    data_x = dataX(features)
     print("datax: ", data_x)
-    data_y =  dataY(categories)
+    data_y = dataY(categories)
     print("datay: ", data_y)
     data_x_test = dataXTest(features)
     data_y_test = dataYTest(categories)
-    sess = tf.Session()
-    sess.run(tf.global_variables_initializer())
-    for i in range(0, 1000):
-        sess.run(update, feed_dict={x: data_x, y_: data_y})
-        if i % 10 == 0:
-            print("Loss: ", loss)
+    pred = tf.nn.softmax(tf.matmul(x, W) + b)  # Softmax
+
+    # Minimize error using cross entropy
+    cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(pred), reduction_indices=1))
+    # Gradient Descent
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
+
+    # Initialize the variables (i.e. assign their default value)
+    init = tf.global_variables_initializer()
+
+    # Start training
+    with tf.Session() as sess:
+
+        # Run the initializer
+        sess.run(init)
+
+        # Training cycle
+        for epoch in range(training_epochs):
+            avg_cost = 0.
+            total_batch = int(3609 / batch_size)
+            # Loop over all batches
+            sess.run(W)
+            sess.run(b)
+            for i in range(total_batch):
+                batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
+                # Run optimization op (backprop) and cost op (to get loss value)
+                _, c = sess.run([optimizer, cost], feed_dict={x: batch_xs,
+                                                              y: batch_ys})
+                # Compute average loss
+                avg_cost += c / total_batch
+            # Display logs per epoch step
+            if (epoch + 1) % display_step == 0:
+                print("Epoch:","W: ",W , "b: ",b ,  '%04d' % (epoch + 1), "cost=", "{:.9f}".format(avg_cost))
+
+        print("Optimization Finished!")
+
+        # Test model
+        correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+        # Calculate accuracy
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        print("Accuracy:", accuracy.eval({x: data_x_test, y: data_y_test}))
+
+    y = tf.nn.softmax(z)
+    loss = -tf.reduce_mean(y_ * tf.log(y))
+    #loss = tf.reduce_mean(loss1)
+    #loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2( y_, z))
+
+    update = tf.train.GradientDescentOptimizer(0.001).minimize(loss)
+
+
+
+    #sess = tf.Session()
+    #sess.run(tf.global_variables_initializer())
+    #for i in range(0, 1000):
+       # sess.run(update, feed_dict={x: data_x, y_: data_y})
+        #if i % 10 == 0:
+            #print(("W: ", W))
+            #print("B: ", b )
+         #   print("loss: ", loss.eval(session=sess, feed_dict={x: data_x, y_: data_y}))
+            #print("loss", loss)
+            #print("update: ", update)
     #for i in range(len(data_x_test)):
      #   print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
 
