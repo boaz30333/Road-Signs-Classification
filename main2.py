@@ -3,7 +3,7 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import tensorflow.compat.v1 as tf
+import tensorflow as tf
 import numpy as np
 from numpy import asarray
 from PIL import Image
@@ -12,9 +12,6 @@ import glob
 import random as rn
 import os
 import shutil
-
-tf.compat.v1.disable_resource_variables()
-tf.disable_v2_behavior()
 
 
 def show_image():
@@ -43,34 +40,32 @@ def next_batch(num, data, labels):
 def dataX(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\train\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
-        # print("In dataX 2")
         for filepath in glob.iglob(r'' + globpath):
-           # print("In dataX 3")
             count = count + 1
             img = Image.open(filepath).convert('L')  # convert image to 8-bit grayscale
             data = list(img.getdata())
             x = np.array(data)
             data_x = np.append(data_x, x)
-            # print("x: ", x)
+            #print("x: ", x)
     print("count", count)
     data_x = data_x.reshape(count, features)
     #print("data_x: ", data_x)
     return data_x.astype(int)
-
+    #return data_x
 def dataY(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\train\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[3]):
+                if i != int(path[2]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
@@ -78,11 +73,12 @@ def dataY(categories):
     data_y = data_y.reshape(count, categories)
     #print("data_y: ", data_y)
     return data_y.astype(int)
+    #return data_y
 
 def dataXTest(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\test\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\test\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -96,25 +92,24 @@ def dataXTest(features):
     data_x = data_x.reshape(count, features)
     #print("data_x: ", data_x)
     return data_x.astype(int)
-
 def dataYTest(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\test\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\test\[0-2]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[3]):
+                if i != int(path[2]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
             data_y = np.append(data_y, y)
     data_y = data_y.reshape(count, categories)
     #print("data_y: ", data_y)
-    return data_y
+    return data_y.astype(int)
 
 
 def model():
@@ -122,98 +117,88 @@ def model():
     print(' model')
     #pixels = asarray(image)
 
-    learning_rate = 0.00001
-    training_epochs = 10000
+    learning_rate = 0.01
+    training_epochs = 25
     batch_size = 100
     display_step = 1
     features = 32 * 32
-    categories = 4
+    categories = 3
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
+    W = tf.Variable(tf.random_normal([features, categories]))
     W = tf.Variable(tf.zeros([features, categories]))
-    b = tf.Variable(tf.zeros([categories]))
-    z = tf.matmul(x, W) + b
-    # y = tf.nn.softmax(z)
+    b = tf.Variable(tf.random_normal([categories]))
     y = tf.nn.softmax(tf.matmul(x, W) + b)
-    #loss = -tf.reduce_mean(y_ * tf.log(y))
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
-
-    update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
-    data_x = np.array([])
-    data_y = np.array([])
-    data_x =  dataX(features)
+    z = tf.matmul(x, W) + b
+    data_x = dataX(features)
     print("datax: ", data_x)
-    data_y =  dataY(categories)
+    data_y = dataY(categories)
     print("datay: ", data_y)
     data_x_test = dataXTest(features)
     data_y_test = dataYTest(categories)
     pred = tf.nn.softmax(tf.matmul(x, W) + b)  # Softmax
-    #
-    #
-    # # Minimize error using cross entropy
-    # cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(pred+0.00000001), reduction_indices=1))
-    # # Gradient Descent
-    # optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
-    #
-    # # Initialize the variables (i.e. assign their default value)
-    # init = tf.global_variables_initializer()
-    #
-    # # Start training
-    # with tf.Session() as sess:
-    #
-    #     # Run the initializer
-    #     sess.run(init)
-    #
-    #     # Training cycle
-    #     for epoch in range(training_epochs):
-    #         avg_cost = 0.
-    #         total_batch = int(3609 / batch_size)
-    #         # Loop over all batches
-    #         sess.run(W)
-    #         sess.run(b)
-    #         for i in range(total_batch):
-    #             batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
-    #             # Run optimization op (backprop) and cost op (to get loss value)
-    #             _, c = sess.run([optimizer, cost], feed_dict={x: batch_xs,
-    #                                                           y: batch_ys})
-    #             # Compute average loss
-    #             avg_cost += c / total_batch
-    #         # Display logs per epoch step
-    #         if (epoch + 1) % display_step == 0:
-    #             print("Epoch:","W: ",sess.run(W) , "b: ",sess.run(b) ,  '%04d' % (epoch + 1), "cost=", "{:.9f}".format(avg_cost))
-    #
-    #     print("Optimization Finished!")
-    #
-    #     # Test model
-    #     correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
-    #     # Calculate accuracy
-    #     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    #     print("Accuracy:", accuracy.eval({x: data_x_test, y: data_y_test}))
 
+    # Minimize error using cross entropy
+    cost = tf.reduce_mean(-tf.reduce_sum(y * tf.log(pred), reduction_indices=1))
+    # Gradient Descent
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
 
-    sess = tf.Session()
-    sess.run(tf.global_variables_initializer())
-    for i in range(0, 10000):
-        total_batch = int(len(data_x) / batch_size)
-        for j in range(total_batch):
-            batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
-            sess.run(update, feed_dict={x: batch_xs, y_: batch_ys})
-            if i % 100 == 0:
-                print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
-            if i==9999:
-                print("W: ", sess.run(W), ",       b: ", sess.run(b))
+    # Initialize the variables (i.e. assign their default value)
+    init = tf.global_variables_initializer()
 
-    # Test model
-    correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-    # Calculate accuracy
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    print("Accuracy:", accuracy.eval(session=sess, feed_dict = {x: data_x_test, y_: data_y_test}))
+    # Start training
+    with tf.Session() as sess:
+
+        # Run the initializer
+        sess.run(init)
+
+        # Training cycle
+        for epoch in range(training_epochs):
+            avg_cost = 0.
+            total_batch = int(3609 / batch_size)
+            # Loop over all batches
+            sess.run(W)
+            sess.run(b)
+            for i in range(total_batch):
+                batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
+                # Run optimization op (backprop) and cost op (to get loss value)
+                _, c = sess.run([optimizer, cost], feed_dict={x: batch_xs,
+                                                              y: batch_ys})
+                # Compute average loss
+                avg_cost += c / total_batch
+            # Display logs per epoch step
+            if (epoch + 1) % display_step == 0:
+                print("Epoch:","W: ",W , "b: ",b ,  '%04d' % (epoch + 1), "cost=", "{:.9f}".format(avg_cost))
+
+        print("Optimization Finished!")
+
+        # Test model
+        correct_prediction = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
+        # Calculate accuracy
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        print("Accuracy:", accuracy.eval({x: data_x_test, y: data_y_test}))
+
+    y = tf.nn.softmax(z)
+    loss = -tf.reduce_mean(y_ * tf.log(y))
+    #loss = tf.reduce_mean(loss1)
+    #loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2( y_, z))
+
+    update = tf.train.GradientDescentOptimizer(0.001).minimize(loss)
 
 
 
-            #"W: ", """sess.run(W),""" "b:",""" sess.run(b),"""
-    # for i in range(len(data_x_test)):
-    #     print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
+    #sess = tf.Session()
+    #sess.run(tf.global_variables_initializer())
+    #for i in range(0, 1000):
+       # sess.run(update, feed_dict={x: data_x, y_: data_y})
+        #if i % 10 == 0:
+            #print(("W: ", W))
+            #print("B: ", b )
+         #   print("loss: ", loss.eval(session=sess, feed_dict={x: data_x, y_: data_y}))
+            #print("loss", loss)
+            #print("update: ", update)
+    #for i in range(len(data_x_test)):
+     #   print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
 
     #basewidth = 10
     #wpercent = (basewidth / float(img.size[0]))
@@ -245,9 +230,9 @@ def pick_random_20_precent(path, lib_name):
     print(count)
     print(lib_name)
     precent= count*0.2
-    source_dir = 'Road-Signs-Project\\dataset2\\train\\'+lib_name
-    target_dir1 = 'Road-Signs-Project\\dataset2\\test\\'+lib_name
-    target_dir2='Road-Signs-Project\\dataset2\\validation\\'+lib_name
+    source_dir = 'road signs\dataset2\\train\\'+lib_name
+    target_dir1 = 'road signs\dataset2\\test\\'+lib_name
+    target_dir2='road signs\dataset2\\validation\\'+lib_name
     #file_names = os.listdir(source_dir)
 
    # for file_name in file_names:
