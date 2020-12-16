@@ -3,7 +3,7 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 from numpy import asarray
 from PIL import Image
@@ -12,6 +12,9 @@ import glob
 import random as rn
 import os
 import shutil
+
+tf.compat.v1.disable_resource_variables()
+tf.disable_v2_behavior()
 
 
 def show_image():
@@ -28,31 +31,34 @@ def show_image():
 def dataX(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
+    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\train\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
+        # print("In dataX 2")
         for filepath in glob.iglob(r'' + globpath):
+           # print("In dataX 3")
             count = count + 1
             img = Image.open(filepath).convert('L')  # convert image to 8-bit grayscale
             data = list(img.getdata())
             x = np.array(data)
             data_x = np.append(data_x, x)
-            #print("x: ", x)
+            # print("x: ", x)
     print("count", count)
     data_x = data_x.reshape(count, features)
     #print("data_x: ", data_x)
     return data_x.astype(int)
+
 def dataY(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0-2]'):
+    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\train\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[2]):
+                if i != int(path[3]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
@@ -64,7 +70,7 @@ def dataY(categories):
 def dataXTest(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\test\[0-2]'):
+    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\test\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -78,17 +84,18 @@ def dataXTest(features):
     data_x = data_x.reshape(count, features)
     #print("data_x: ", data_x)
     return data_x.astype(int)
+
 def dataYTest(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\test\[0..2]'):
+    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\test\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[2]):
+                if i != int(path[3]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
@@ -105,13 +112,13 @@ def model():
 
 
     features = 32 * 32
-    categories = 3
+    categories = 4
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     W = tf.Variable(tf.zeros([features, categories]))
     b = tf.Variable(tf.zeros([categories]))
     z = tf.matmul(x, W) + b
-    #y = tf.nn.softmax(z)
+    y = tf.nn.softmax(z)
     #loss = -tf.reduce_mean(y_ * tf.log(y))
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
 
@@ -126,12 +133,15 @@ def model():
     data_y_test = dataYTest(categories)
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-    for i in range(0, 1000):
+    for i in range(0, 5000):
         sess.run(update, feed_dict={x: data_x, y_: data_y})
-        if i % 10 == 0:
-            print("Loss: ", loss)
-    #for i in range(len(data_x_test)):
-     #   print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
+        if i % 100 == 0:
+            print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
+        if i==4999:
+            print("W: ", sess.run(W), ",       b: ", sess.run(b))
+            #"W: ", """sess.run(W),""" "b:",""" sess.run(b),"""
+    # for i in range(len(data_x_test)):
+    #     print('Prediction for: "' + data_x_test[i] + ': "', sess.run(y, feed_dict={x: [data_x_test[i]]}))
 
     #basewidth = 10
     #wpercent = (basewidth / float(img.size[0]))
@@ -163,9 +173,9 @@ def pick_random_20_precent(path, lib_name):
     print(count)
     print(lib_name)
     precent= count*0.2
-    source_dir = 'road signs\dataset2\\train\\'+lib_name
-    target_dir1 = 'road signs\dataset2\\test\\'+lib_name
-    target_dir2='road signs\dataset2\\validation\\'+lib_name
+    source_dir = 'Road-Signs-Project\\dataset2\\train\\'+lib_name
+    target_dir1 = 'Road-Signs-Project\\dataset2\\test\\'+lib_name
+    target_dir2='Road-Signs-Project\\dataset2\\validation\\'+lib_name
     #file_names = os.listdir(source_dir)
 
    # for file_name in file_names:
