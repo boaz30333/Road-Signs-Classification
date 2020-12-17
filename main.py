@@ -214,10 +214,10 @@ def model():
         for j in range(total_batch):
             batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
             sess.run(update, feed_dict={x: batch_xs, y_: batch_ys})
-            if i % 100 == 0:
-                print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
-            if i==999:
-                print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
+        if i % 100 == 0:
+            print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
+        if i==999:
+            print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
 
     # Test model
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
