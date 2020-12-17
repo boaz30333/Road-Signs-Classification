@@ -13,8 +13,8 @@ import random as rn
 import os
 import shutil
 
-# tf.compat.v1.disable_resource_variables()
-# tf.disable_v2_behavior()
+tf.compat.v1.disable_resource_variables()
+tf.disable_v2_behavior()
 
 
 def show_image():
@@ -128,33 +128,41 @@ def model():
     display_step = 1
     features = 32 * 32
     categories = 4
-    hidden_layer_nodes = 10
+    hidden_layer_nodes_1 = 20
+    hidden_layer_nodes_2 = 10
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     # W = tf.Variable(tf.zeros([features, categories]))
     # b = tf.Variable(tf.zeros([categories]))
 
-    W1 = tf.Variable(tf.truncated_normal([features, hidden_layer_nodes], stddev=0.1))
-    b1 = tf.Variable(tf.constant(0.1, shape=[hidden_layer_nodes]))
-    z1 = tf.add(tf.matmul(x, W1), b1)
-    a1 = tf.nn.relu(z1)
-    print(a1)
-    W2 = tf.Variable(tf.truncated_normal([hidden_layer_nodes, categories], stddev=0.1))
-    b2 = tf.Variable(tf.zeros([categories]))
-    print(W2)
-    z2 = tf.matmul(a1, W2) + b2
+    W1 = tf.Variable(tf.truncated_normal([features, hidden_layer_nodes_1], stddev=0.1))
+    b1 = tf.Variable(tf.constant(0.1, shape=[hidden_layer_nodes_1]))
+    # z1 = tf.add(tf.matmul(x, W1), b1)
+    z1 = tf.nn.relu(tf.matmul(x,W1)+b1)
+    # print(z1)
 
+    W2 = tf.Variable(tf.truncated_normal([hidden_layer_nodes_1, hidden_layer_nodes_2], stddev=0.1))
+    b2 = tf.Variable(tf.constant(0.1, shape=[hidden_layer_nodes_2]))
+    z2 = tf.nn.relu(tf.matmul(z1, W2) + b2)
+    # print(W2)
+    W3 = tf.Variable(tf.truncated_normal([hidden_layer_nodes_2, categories], stddev=0.1))
+    b3 = tf.Variable(tf.constant(0.1, shape=[categories]))
+    # z2 = tf.matmul(a1, W2) + b2
+    z3 = tf.matmul(z2, W3) + b3
     # z = tf.matmul(x, W) + b
     # y = tf.nn.softmax(z)
-    y = tf.nn.softmax(z2)
+    # y = tf.nn.softmax(tf.matmul(z1, W2) + b2)
+    y = tf.nn.softmax(tf.matmul(z2, W3) + b3)
+
     #loss = -tf.reduce_mean(y_ * tf.log(y))
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z2))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z3))
+    # loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y+ 0.00000001), reduction_indices=[1]))
 
     # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
     # loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y+ 0.00000001), reduction_indices=[1]))
     # + 0.00000001
 
-    update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
+    update = tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
     # data_x = np.array([])
     # data_y = np.array([])
     data_x =  dataX(features)
@@ -209,15 +217,17 @@ def model():
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-    for i in range(0, 500):
+    for i in range(0, 10000):
         total_batch = int(len(data_x) / batch_size)
         for j in range(total_batch):
             batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
+            # print('batch_xs: ', len(batch_xs), 'batch_ys: ', len(batch_ys))
             sess.run(update, feed_dict={x: batch_xs, y_: batch_ys})
+        # sess.run(update, feed_dict={x: data_x, y_: data_y})
         if i % 100 == 0:
             print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
-        if i==999:
-            print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
+            # if i==4999:
+            #     print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
 
     # Test model
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
