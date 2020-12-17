@@ -43,7 +43,7 @@ def next_batch(num, data, labels):
 def dataX(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\train\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\train\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         # print("In dataX 2")
@@ -63,14 +63,14 @@ def dataX(features):
 def dataY(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\train\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\train\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[3]):
+                if i != int(path[2]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
@@ -82,7 +82,7 @@ def dataY(categories):
 def dataXTest(features):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\test\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\test\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -100,14 +100,14 @@ def dataXTest(features):
 def dataYTest(categories):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'Road-Signs-Project\dataset2\test\[0-3]'):
+    for filepath in glob.iglob(r'dataset2\test\[0-3]'):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[3]):
+                if i != int(path[2]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
@@ -140,7 +140,7 @@ def model():
     a1 = tf.nn.relu(z1)
     print(a1)
     W2 = tf.Variable(tf.truncated_normal([hidden_layer_nodes, categories], stddev=0.1))
-    b2 = tf.Variable(tf.zeros([categories]))
+    b2 = tf.Variable(tf.constant(0.1, shape=[categories]))
     print(W2)
     z2 = tf.matmul(a1, W2) + b2
 
@@ -209,15 +209,16 @@ def model():
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-    for i in range(0, 500):
+    for i in range(0, 5000):
         total_batch = int(len(data_x) / batch_size)
         for j in range(total_batch):
             batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
             sess.run(update, feed_dict={x: batch_xs, y_: batch_ys})
-            if i % 100 == 0:
-                print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
-            if i==999:
-                print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
+
+        if i % 100 == 0:
+            print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
+        if i==4999:
+            print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
 
     # Test model
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
