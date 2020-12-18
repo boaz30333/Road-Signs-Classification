@@ -128,8 +128,8 @@ def model():
     display_step = 1
     features = 32 * 32
     categories = 4
-    hidden_layer_nodes_1 = 20
-    hidden_layer_nodes_2 = 10
+    hidden_layer_nodes_1 = 100
+    hidden_layer_nodes_2 = 50
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     # W = tf.Variable(tf.zeros([features, categories]))

@@ -40,10 +40,10 @@ def next_batch(num, data, labels):
 
     return np.asarray(data_shuffle), np.asarray(labels_shuffle)
 
-def dataX(features):
+def dataX(features, set):
     data_x = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0-3]'):
+    for filepath in glob.iglob(set):
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         # print("In dataX 2")
@@ -60,10 +60,12 @@ def dataX(features):
     #print("data_x: ", data_x)
     return data_x.astype(int)
 
-def dataY(categories):
+def dataY(categories, set):
     data_y = np.array([])
     count = 0
-    for filepath in glob.iglob(r'dataset2\train\[0-3]'):
+    print("set: ", set )
+    for filepath in glob.iglob(set):
+        print("filepath: ", filepath)
         path = filepath.split("\\")
         globpath = filepath + '\*.jpg'
         for filepath in glob.iglob(r'' + globpath):
@@ -128,41 +130,51 @@ def model():
     display_step = 1
     features = 32 * 32
     categories = 4
-    hidden_layer_nodes = 100
+    hidden_layer_nodes_1 = 200
+    hidden_layer_nodes_2 = 100
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     # W = tf.Variable(tf.zeros([features, categories]))
     # b = tf.Variable(tf.zeros([categories]))
 
-    W1 = tf.Variable(tf.truncated_normal([features, hidden_layer_nodes], stddev=0.1))
-    b1 = tf.Variable(tf.constant(0.1, shape=[hidden_layer_nodes]))
-    z1 = tf.add(tf.matmul(x, W1), b1)
-    a1 = tf.nn.relu(z1)
-    print(a1)
-    W2 = tf.Variable(tf.truncated_normal([hidden_layer_nodes, categories], stddev=0.1))
-    b2 = tf.Variable(tf.constant(0.1, shape=[categories]))
-    print(W2)
-    z2 = tf.matmul(a1, W2) + b2
+    W1 = tf.Variable(tf.truncated_normal([features, hidden_layer_nodes_1], stddev=0.1))
+    b1 = tf.Variable(tf.constant(0.1, shape=[hidden_layer_nodes_1]))
+    # z1 = tf.add(tf.matmul(x, W1), b1)
+    z1 = tf.nn.relu(tf.matmul(x,W1)+b1)
+    # print(z1)
 
+    W2 = tf.Variable(tf.truncated_normal([hidden_layer_nodes_1, hidden_layer_nodes_2], stddev=0.1))
+    b2 = tf.Variable(tf.constant(0.1, shape=[hidden_layer_nodes_2]))
+    z2 = tf.nn.relu(tf.matmul(z1, W2) + b2)
+    # print(W2)
+    W3 = tf.Variable(tf.truncated_normal([hidden_layer_nodes_2, categories], stddev=0.1))
+    b3 = tf.Variable(tf.constant(0.1, shape=[categories]))
+    # z2 = tf.matmul(a1, W2) + b2
+    z3 = tf.matmul(z2, W3) + b3
     # z = tf.matmul(x, W) + b
     # y = tf.nn.softmax(z)
-    y = tf.nn.softmax(z2)
+    # y = tf.nn.softmax(tf.matmul(z1, W2) + b2)
+    y = tf.nn.softmax(tf.matmul(z2, W3) + b3)
+
     #loss = -tf.reduce_mean(y_ * tf.log(y))
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z2))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z3))
+    # loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y+ 0.00000001), reduction_indices=[1]))
 
     # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
     # loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y+ 0.00000001), reduction_indices=[1]))
     # + 0.00000001
 
-    update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
+    update = tf.train.AdamOptimizer(0.0001).minimize(loss)
     # data_x = np.array([])
     # data_y = np.array([])
-    data_x =  dataX(features)
+    data_x =  dataX(features, r'dataset2\train\[0-3]')
     print("datax: ", data_x)
-    data_y =  dataY(categories)
+    data_y =  dataY(categories, r'dataset2\train\[0-3]')
     print("datay: ", data_y)
     data_x_test = dataXTest(features)
     data_y_test = dataYTest(categories)
+    data_x_validation = dataX(features, r'dataset2\validation\[0-3]')
+    data_y_validation = dataY(categories, r'dataset2\validation\[0-3]')
     # pred = tf.nn.softmax(tf.matmul(x, W) + b)  # Softmax
     #
     #
@@ -209,22 +221,36 @@ def model():
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-    for i in range(0, 5000):
-        total_batch = int(len(data_x) / batch_size)
-        for j in range(total_batch):
-            batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
-            sess.run(update, feed_dict={x: batch_xs, y_: batch_ys})
+    accuracy = 0.
+    first = 1
+    while(first == 1 or accuracy.eval(session=sess, feed_dict={x: data_x_validation, y_: data_y_validation}) < 0.98):
+        first = 0
+        for i in range(0, 1000):
+            total_batch = int(len(data_x) / batch_size)
+            for j in range(total_batch):
+                batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
+                #print('batch_xs: ', len(batch_xs), 'batch_ys: ', len(batch_ys))
+                sess.run(update, feed_dict={x: batch_xs, y_: batch_ys})
+            # sess.run(update, feed_dict={x: data_x, y_: data_y})
+            if i % 100 == 0:
+                print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
+            if i==999:
+                print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
+                correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+                # Calculate accuracy
+                accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+                print("Accuracy train:", accuracy.eval(session=sess, feed_dict={x: data_x, y_: data_y}))
+        correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
+        # Calculate accuracy
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+        print("Accuracy validation:", accuracy.eval(session=sess, feed_dict={x: data_x_validation, y_: data_y_validation}))
 
-        if i % 100 == 0:
-            print("Iteration:", i, ",      Loss: ", loss.eval(session=sess, feed_dict = {x:data_x, y_:data_y}))
-        if i==4999:
-            print("W: ", sess.run(W1), ",       b: ", sess.run(b1))
-
+    print("The model is ready!")
     # Test model
     correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
     # Calculate accuracy
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    print("Accuracy:", accuracy.eval(session=sess, feed_dict = {x: data_x_test, y_: data_y_test}))
+    print("Accuracy test:", accuracy.eval(session=sess, feed_dict = {x: data_x_test, y_: data_y_test}))
 
     # import operator
     #"W: ", """sess.run(W),""" "b:",""" sess.run(b),"""
@@ -252,7 +278,6 @@ def model():
     #img.show()
     #np.save(file_name, a)
     #np.savetxt(x+"/"+file_name+".csv", a, delimiter=',', fmt='%d')
-
 
 def pick_random_20_precent(path, lib_name):
     count=0
