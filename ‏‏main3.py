@@ -69,8 +69,8 @@ def model():
     batch_size = 100
     features = 32 * 32
     categories = 4
-    hidden_layer_nodes_1 = 100
-    hidden_layer_nodes_2 = 50
+    hidden_layer_nodes_1 = 200
+    hidden_layer_nodes_2 = 100
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     W1 = tf.Variable(tf.truncated_normal([features, hidden_layer_nodes_1], stddev=0.1))
@@ -86,7 +86,7 @@ def model():
     y = tf.nn.softmax(tf.matmul(z2, W3) + b3)
 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z3))
-    update = tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
+    update = tf.train.AdamOptimizer(0.0001).minimize(loss)
     data_x =  dataX(features, r'dataset2\train\[0-3]')
     print("datax: ", data_x)
     data_y =  dataY(categories, r'dataset2\train\[0-3]')
@@ -128,7 +128,6 @@ def model():
     print("Accuracy test:", accuracy.eval(session=sess, feed_dict = {x: data_x_test, y_: data_y_test}))
     for i in range(len(data_x_test)):
         print('Prediction for: "', data_x_test[i], '": ', sess.run(y, feed_dict={x: [data_x_test[i]]}), ',  Max value: ', max(sess.run(y, feed_dict={x: [data_x_test[i]]})[0]), ',  Sum: ', sum(sess.run(y, feed_dict={x: [data_x_test[i]]})[0]), ', real class: ', data_y_test[i])
-
 
 
 
