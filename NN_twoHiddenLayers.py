@@ -55,7 +55,7 @@ def dataY(categories, set):
             count = count + 1
             y = np.array([])
             for i in range(categories):
-                if i != int(path[2]):
+                if i != int(path[3]):
                     y = np.append(y, [0])
                 else:
                     y = np.append(y, [1])
@@ -88,14 +88,29 @@ def model():
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z3))
 
     update = tf.train.AdamOptimizer(0.0001).minimize(loss)
-    data_x = dataX(features, r'Road-Signs-Project\dataset2\train\[0-3]')
+    # data_x = dataX(features, r'Road-Signs-Project\dataset2\train\[0-3]')
+    # print("datax: ", data_x)
+    # data_y = dataY(categories, r'Road-Signs-Project\dataset2\train\[0-3]')
+    # print("datay: ", data_y)
+    # data_x_test = dataX(features, r'Road-Signs-Project\dataset2\test\[0-3]')
+    # data_y_test = dataY(categories, r'Road-Signs-Project\dataset2\test\[0-3]')
+    # data_x_validation = dataX(features, r'Road-Signs-Project\dataset2\validation\[0-3]')
+    # data_y_validation = dataY(categories, r'Road-Signs-Project\dataset2\validation\[0-3]')
+
+    data_x = np.load(r'Road-Signs-Project\t_x.npy')  # dataX(features, r'dataset2\train\[0-42]')
+    data_x = data_x.astype(int)
     print("datax: ", data_x)
-    data_y = dataY(categories, r'Road-Signs-Project\dataset2\train\[0-3]')
+    data_y = np.load(r'Road-Signs-Project\t_y.npy')  # dataY(categories, r'dataset2\train\[0-42]')
+    data_y = data_y.astype(int)
     print("datay: ", data_y)
-    data_x_test = dataX(features, r'Road-Signs-Project\dataset2\test\[0-3]')
-    data_y_test = dataY(categories, r'Road-Signs-Project\dataset2\test\[0-3]')
-    data_x_validation = dataX(features, r'Road-Signs-Project\dataset2\validation\[0-3]')
-    data_y_validation = dataY(categories, r'Road-Signs-Project\dataset2\validation\[0-3]')
+    data_x_test = np.load(r'Road-Signs-Project\test_x.npy')  # dataX(features, r'dataset2\test\[0-42]')
+    data_x_test = data_x_test.astype(int)
+    data_y_test = np.load(r'Road-Signs-Project\test_y.npy')  # dataY(categories, r'dataset2\test\[0-42]')
+    data_y_test = data_y_test.astype(int)
+    data_x_validation = np.load(r'Road-Signs-Project\v_x.npy')  # dataX(features, r'dataset2\validation\[0-42]')
+    data_x_validation = data_x_validation.astype(int)
+    data_y_validation = np.load(r'Road-Signs-Project\v_y.npy')  # dataY(categories, r'dataset2\validation\[0-42]')
+    data_y_validation = data_y_validation.astype(int)
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
