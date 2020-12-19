@@ -5,13 +5,9 @@
 
 import tensorflow.compat.v1 as tf
 import numpy as np
-from numpy import asarray
 from PIL import Image
-from numpy import clip
 import glob
-import random as rn
-import os
-import shutil
+
 
 # tf.compat.v1.disable_resource_variables()
 tf.disable_v2_behavior()
@@ -66,10 +62,7 @@ def dataY(categories, set):
 def model():
     print(' model')
 
-    learning_rate = 0.00001
-    training_epochs = 10000
     batch_size = 100
-    display_step = 1
     features = 32 * 32
     categories = 4
     x = tf.placeholder(tf.float32, [None, features])
@@ -80,14 +73,14 @@ def model():
     y = tf.nn.softmax(tf.matmul(x, W) + b)
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
 
-    update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
+    update = tf.train.AdamOptimizer(0.00001).minimize(loss)
     data_x = dataX(features, r'dataset2\train\[0-3]')
     print("datax: ", data_x)
     data_y = dataY(categories, r'dataset2\train\[0-3]')
     print("datay: ", data_y)
     data_x_test = dataX(features, r'dataset2\test\[0-3]')
     data_y_test = dataY(categories, r'dataset2\test\[0-3]')
-    pred = tf.nn.softmax(tf.matmul(x, W) + b)  # Softmax
+
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())

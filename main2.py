@@ -82,7 +82,7 @@ def model():
     y = tf.nn.softmax(z2)
 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z2))
-    update = tf.train.AdamOptimizer(0.0001).minimize(loss)
+    update = tf.train.GradientDescentOptimizer(0.0001).minimize(loss)
     data_x =  dataX(features, r'dataset2\train\[0-3]')
     print("datax: ", data_x)
     data_y =  dataY(categories, r'dataset2\train\[0-3]')
@@ -96,9 +96,10 @@ def model():
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
     first = 1
-    while(first == 1 or accuracy.eval(session=sess, feed_dict={x: data_x_validation, y_: data_y_validation}) < 0.975):
+    # while(first == 1 or accuracy.eval(session=sess, feed_dict={x: data_x_validation, y_: data_y_validation}) < 0.975):
+    while (first == 1):
         first = 0
-        for i in range(0, 1000):
+        for i in range(0, 5000):
             total_batch = int(len(data_x) / batch_size)
             for j in range(total_batch):
                 batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
