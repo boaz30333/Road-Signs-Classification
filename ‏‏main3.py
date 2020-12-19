@@ -100,7 +100,7 @@ def model():
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
     first = 1
-    while(first == 1 or accuracy.eval(session=sess, feed_dict={x: data_x_validation, y_: data_y_validation}) < 0.975):
+    while(first == 1 or accuracy.eval(session=sess, feed_dict={x: data_x_validation, y_: data_y_validation}) < 0.977):
         first = 0
         for i in range(0, 1000):
             total_batch = int(len(data_x) / batch_size)
