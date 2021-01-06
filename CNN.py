@@ -69,16 +69,18 @@ def model():
     filter2 = 64
     hidden_layer_nodes_1 = 100
     hidden_layer_nodes_2 = 50
-    path = r'dataset2\train\[0-2]'
+    train_path = r'dataset2\train\[0-1]'
+    test_path = r'dataset2\test\[0-2]'
+    validation_path = r'dataset2\validation\[0-2]'
 
-    data_x = dataX(features, path)
+    data_x = dataX(features, train_path)
     print("datax: ", data_x)
-    data_y = dataY(categories, path)
+    data_y = dataY(categories, train_path)
     print("datay: ", data_y)
-    data_x_test = dataX(features, path)
-    data_y_test = dataY(categories, path)
-    data_x_validation = dataX(features, path)
-    data_y_validation = dataY(categories, path)
+    data_x_test = dataX(features, test_path)
+    data_y_test = dataY(categories, test_path)
+    data_x_validation = dataX(features, validation_path)
+    data_y_validation = dataY(categories, validation_path)
 
     x = tf.placeholder(tf.float32, shape=[None, features])
     y_ = tf.placeholder(tf.float32, shape=[None, categories])
