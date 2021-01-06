@@ -60,13 +60,13 @@ def model():
 
     batch_size = 50
     features = 32 * 32
-    categories = 4
+    categories = 5
     filter1 = 32
     filter2 = 64
 
-    train_path = r'dataset2\train\[0-3]'
-    test_path = r'dataset2\test\[0-3]'
-    validation_path = r'dataset2\validation\[0-3]'
+    train_path = r'dataset2\train\[0-4]'
+    test_path = r'dataset2\test\[0-4]'
+    validation_path = r'dataset2\validation\[0-4]'
 
 
 
@@ -81,6 +81,7 @@ def model():
 
     x_image = tf.reshape(data_x, [-1, 32, 32, 1])
     x_image_test = tf.reshape(data_x_test, [-1, 32, 32, 1])
+    x_image_validation = tf.reshape(data_x_validation, [-1, 32, 32, 1])
 
     model = models.Sequential()
     model.add(layers.Conv2D(filter1, (5, 5), activation='relu', padding='SAME', input_shape=(32, 32, 1)))
@@ -89,6 +90,7 @@ def model():
     model.add(layers.MaxPooling2D((2, 2), padding='SAME', strides=(2, 2)))
     model.add(layers.Flatten())
     model.add(layers.Dense(filter2, activation='relu'))
+    model.add(layers.Dropout(0.5))
     model.add(layers.Dense(categories))
 
     model.summary()
@@ -98,7 +100,7 @@ def model():
                   metrics=['accuracy'])
 
     history = model.fit(x=x_image, y=data_y, epochs=10,
-                        validation_data=(x_image_test, data_y_test))
+                        validation_data=(x_image_validation, data_y_validation))
 
     # Show results in graph view
     plt.plot(history.history['accuracy'], label='accuracy')
