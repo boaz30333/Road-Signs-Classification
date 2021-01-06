@@ -64,14 +64,14 @@ def model():
 
     batch_size = 50
     features = 32 * 32
-    categories = 3
+    categories = 5
     filter1 = 32
     filter2 = 64
     hidden_layer_nodes_1 = 100
     hidden_layer_nodes_2 = 50
-    train_path = r'dataset2\train\[0-1]'
-    test_path = r'dataset2\test\[0-2]'
-    validation_path = r'dataset2\validation\[0-2]'
+    train_path = r'dataset2\train\[0-4]'
+    test_path = r'dataset2\test\[0-4]'
+    validation_path = r'dataset2\validation\[0-4]'
 
     data_x = dataX(features, train_path)
     print("datax: ", data_x)
