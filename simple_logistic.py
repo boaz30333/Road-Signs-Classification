@@ -63,10 +63,10 @@ def model():
 
     learning_rate = 0.00001
     training_epochs = 10000
-    batch_size = 100
+    batch_size = 50
     display_step = 1
     features = 32 * 32
-    categories = 4
+    categories = 43
     x = tf.placeholder(tf.float32, [None, features])
     y_ = tf.placeholder(tf.float32, [None, categories])
     W = tf.Variable(tf.zeros([features, categories]))
@@ -76,18 +76,18 @@ def model():
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(y_, z))
 
     update = tf.train.GradientDescentOptimizer(0.00001).minimize(loss)
-    data_x = dataX(features, r'dataset2\train\[0-3]')
+    data_x = np.load("data/train__x.npy")  # dataX(features, r'dataset2\train\[0-3]')
     print("datax: ", data_x)
-    data_y = dataY(categories, r'dataset2\train\[0-3]')
+    data_y = np.load("data/train__y.npy")  #dataY(categories, r'dataset2\train\[0-3]')
     print("datay: ", data_y)
-    data_x_test = dataX(features, r'dataset2\test\[0-3]')
-    data_y_test = dataY(categories, r'dataset2\test\[0-3]')
+    data_x_test = np.load("data/test__x.npy")  #dataX(features, r'dataset2\test\[0-3]')
+    data_y_test = np.load("data/test__y.npy")  # dataY(categories, r'dataset2\test\[0-3]')
     pred = tf.nn.softmax(tf.matmul(x, W) + b)  # Softmax
 
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
-    for i in range(0, 500):
-        total_batch = int(len(data_x) / batch_size)
+    for i in range(0, 1000):
+        total_batch = int(len(data_x) / batch_size) + 1
         for j in range(total_batch):
             batch_xs, batch_ys = next_batch(batch_size,data_x,data_y)
             sess.run(update, feed_dict={x: batch_xs, y_: batch_ys})
