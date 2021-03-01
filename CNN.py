@@ -69,9 +69,9 @@ def model():
     filter2 = 64
     hidden_layer_nodes_1 = 100
     hidden_layer_nodes_2 = 50
-    train_path = r'dataset2\train\[0-4]'
-    test_path = r'dataset2\test\[0-4]'
-    validation_path = r'dataset2\validation\[0-4]'
+    train_path = r'dataset\train\[0-4]'
+    test_path = r'dataset\test\[0-4]'
+    validation_path = r'dataset\validation\[0-4]'
 
     data_x = dataX(features, train_path)
     print("datax: ", data_x)

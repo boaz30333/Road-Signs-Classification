@@ -64,9 +64,9 @@ def model():
     filter1 = 32
     filter2 = 64
 
-    train_path = r'dataset2\train\[0-4]'
-    test_path = r'dataset2\test\[0-4]'
-    validation_path = r'dataset2\validation\[0-4]'
+    train_path = r'dataset\train\[0-4]'
+    test_path = r'dataset\test\[0-4]'
+    validation_path = r'dataset\validation\[0-4]'
 
 
 
